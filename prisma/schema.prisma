@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @map("user_id") @db.VarChar(50)
+  type              Int      @map("user_type")
+  userIdentifier    String   @unique @map("user_identifier")
+  userName          String   @map("user_name")
+  email             String?   @unique @map("user_email")
+  password          String?   @map("user_password")
+  applicationStatus Int      @map("application_status")
+  pushEnabled       Boolean  @map("push_enabled")
+  accessToken       String?  @map("access_token") @db.Text
+  refreshToken      String?  @map("refresh_token") @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
