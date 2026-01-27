@@ -1,32 +1,320 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS Application
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Ứng dụng NestJS với các tính năng:
+- User Authentication (Login/Register)
+- Mock Response System (Upload và tự động trả mock response theo user)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Table of Contents
 
-## Description
+- [Postman Collection](#postman-collection)
+- [Mock Response Upload](#mock-response-upload)
+- [User Registration](#user-registration)
+- [User Login](#user-login)
+- [Project Setup](#project-setup)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Postman Collection
 
-## Project setup
+Để test API dễ dàng hơn, project đã cung cấp Postman Collection với tất cả các endpoint đã được cấu hình sẵn.
+
+### Import Collection
+
+1. Mở Postman application
+2. Click **Import** button (góc trên bên trái)
+3. Chọn file `postman-collection/My Collection.postman_collection.json`
+4. Collection sẽ được import vào workspace của bạn
+
+### Collection Structure
+
+Collection bao gồm các request sau:
+
+- **User Registration** (`POST /app/user_register/member`)
+  - Đăng ký user mới
+  - Không cần authentication
+
+- **User Login** (`POST /app/user_login/member`)
+  - Đăng nhập và nhận token
+  - Headers: `x-app-device-type`, `x-app-version`
+
+- **Upload Mock Response** (`POST /app/upload_json_file`)
+  - Upload file JSON để tạo mock response
+  - Content-Type: `multipart/form-data`
+  - Form field: `file`
+
+- **Test API với Mock** (các endpoint khác)
+  - Gọi API bất kỳ với Bearer token
+  - Nếu có mock response trong DB → trả về mock
+  - Nếu không có → chạy controller thật
+
+### Environment Variables
+
+Để sử dụng collection hiệu quả, bạn nên tạo Postman Environment với các biến sau:
+
+- `base_url`: Base URL của API (ví dụ: `http://localhost:3000`)
+- `token`: Bearer token (sẽ được set tự động sau khi login)
+
+### Cách sử dụng
+
+1. **Set Environment:**
+   - Tạo environment mới trong Postman
+   - Set `base_url` = `http://localhost:3000` (hoặc port bạn đang dùng)
+
+2. **Register User:**
+   - Chạy request "User Registration"
+   - Điền thông tin user mới
+
+3. **Login:**
+   - Chạy request "User Login"
+   - Token sẽ được lưu tự động vào environment variable `token`
+
+4. **Upload Mock Response:**
+   - Chạy request "Upload Mock Response"
+   - Chọn file JSON từ thư mục `samples/`
+
+5. **Test API:**
+   - Gọi bất kỳ API nào với Bearer token
+   - Nếu đã upload mock → sẽ nhận mock response
+   - Nếu chưa có mock → sẽ chạy controller thật
+
+### Collection File Location
+
+```
+postman-collection/My Collection.postman_collection.json
+```
+
+## Mock Response Upload
+
+Hệ thống hỗ trợ upload mock response để test API. Mock response được lưu trong database và sẽ được trả về tự động khi gọi API với token hợp lệ.
+
+### Format File Upload
+
+Upload file JSON với format sau:
+
+```json
+{
+  "method": "POST",
+  "userId": "73a67f04547f4",
+  "path": "/app/abc/member",
+  "statusCode": 201,
+  "response": {
+    "user": {
+      "id": "73a67f04547f4",
+      "type": 2
+    },
+    "status": { "timestamp": 1769415617 }
+  }
+}
+```
+
+**Lưu ý:**
+- `fileName` sẽ được lấy từ **tên file upload** (không cần có trong JSON)
+- `method`, `userId`, `path` là **bắt buộc**
+- `statusCode` là optional (mặc định 200)
+- `response` là **bắt buộc** và chứa toàn bộ JSON response sẽ được trả về
+
+### Upsert Logic
+
+Mock response được upsert theo điều kiện: **`method + userId + path`** (không dùng `fileName` làm điều kiện).
+
+- Nếu đã có record với cùng `method + userId + path` → **update** record đó
+- Nếu chưa có → **create** record mới
+
+### Upload Endpoint
+
+```bash
+POST /app/upload_json_file
+Content-Type: multipart/form-data
+
+# Form field: file
+# File: your-mock-file.json
+```
+
+### Ví dụ
+
+```bash
+curl -X POST http://localhost:3000/app/upload_json_file \
+  -F "file=@post_login_member.json;type=application/json"
+```
+
+File `post_login_member.json`:
+```json
+{
+  "method": "POST",
+  "userId": "73a67f04547f4",
+  "path": "/app/user_login/member",
+  "statusCode": 201,
+  "response": {
+    "token": "mock-token",
+    "user": { "id": "73a67f04547f4" }
+  }
+}
+```
+
+Khi gọi API `POST /app/user_login/member` với Bearer token chứa `userId=73a67f04547f4`, hệ thống sẽ tự động trả về mock response từ database.
+
+## User Registration
+
+Hệ thống hỗ trợ đăng ký user mới thông qua API register.
+
+### Register Endpoint
+
+```bash
+POST /app/user_register/member
+Content-Type: application/json
+```
+
+### Request Body
+
+```json
+{
+  "user": {
+    "id": "73a67f04547f4",
+    "type": 2
+  },
+  "result": {
+    "user_identifier": "huynq",
+    "user_name": "Huy Nguyen",
+    "email": "huy@example.com",
+    "application_status": "3",
+    "setting": {
+      "push": "1"
+    }
+  },
+  "password": "your-password"
+}
+```
+
+### Field Requirements
+
+**Required fields:**
+- `user.id`: User ID (string)
+- `user.type`: User type (number)
+- `result.user_identifier`: User identifier (string)
+- `result.user_name`: User name (string)
+- `result.email`: Email address (must be valid email format)
+- `result.application_status`: Application status (string)
+- `result.setting.push`: Push notification setting (string, "1" for enabled, "0" for disabled)
+- `password`: Password (string, will be hashed before storing)
+
+**Note:** Token sẽ được tạo tự động khi user login sau khi register thành công.
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:3000/app/user_register/member \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user": {
+      "id": "73a67f04547f4",
+      "type": 2
+    },
+    "result": {
+      "user_identifier": "huynq",
+      "user_name": "Huy Nguyen",
+      "email": "huy@example.com",
+      "application_status": "3",
+      "setting": {
+        "push": "1"
+      }
+    },
+    "password": "secure-password-123"
+  }'
+```
+
+### Response
+
+Success response:
+```json
+{
+  "message": "Registration successful!"
+}
+```
+
+**Lưu ý:** Sau khi register thành công, user cần login qua endpoint `/app/user_login/member` để nhận token.
+
+### Error Responses
+
+Khi register thất bại, API sẽ trả về các lỗi sau:
+
+- **400 Bad Request - User ID already exists**: User ID đã tồn tại trong hệ thống
+- **400 Bad Request - User identifier already exists**: User identifier đã tồn tại
+- **400 Bad Request - Email already exists**: Email đã được sử dụng bởi user khác
+
+## User Login
+
+Hệ thống hỗ trợ đăng nhập user và nhận token để sử dụng các API khác.
+
+### Login Endpoint
+
+```bash
+POST /app/user_login/member
+Content-Type: application/json
+Headers:
+  x-app-device-type: <device-type> (optional)
+  x-app-version: <app-version> (optional)
+```
+
+### Request Body
+
+```json
+{
+  "login_name": "huynq",
+  "password": "your-password"
+}
+```
+
+### Field Requirements
+
+**Required fields:**
+- `login_name`: Email hoặc user identifier (string)
+- `password`: Password (string)
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:3000/app/user_login/member \
+  -H "Content-Type: application/json" \
+  -H "x-app-device-type: mobile" \
+  -H "x-app-version: 1.0.0" \
+  -d '{
+    "login_name": "huynq",
+    "password": "secure-password-123"
+  }'
+```
+
+### Response
+
+Success response:
+```json
+{
+  "user": {
+    "id": "73a67f04547f4",
+    "type": 2
+  },
+  "result": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user_identifier": "huynq",
+    "user_name": "Huy Nguyen",
+    "email": "huy@example.com",
+    "application_status": 3,
+    "setting": {
+      "push": "1"
+    }
+  },
+  "status": {
+    "timestamp": 1769415617
+  }
+}
+```
+
+### Error Responses
+
+- **401 Unauthorized - Invalid login_name or password**: Tên đăng nhập hoặc mật khẩu không đúng
+- **401 Unauthorized - Invalid credentials**: Thông tin đăng nhập không hợp lệ
+- **401 Unauthorized - Incorrect password**: Mật khẩu không đúng
+- **401 Unauthorized - User email not found**: Không tìm thấy email của user
+
+## Project Setup
 
 ```bash
 $ npm install
@@ -57,43 +345,3 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
