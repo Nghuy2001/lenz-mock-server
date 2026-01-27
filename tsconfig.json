@@ -1,3 +1,26 @@
+// {
+//   "compilerOptions": {
+//     "module": "commonjs",
+//     "target": "ES2021",
+//     "outDir": "./dist",
+//     "declaration": true,
+//     "sourceMap": true,
+//     "removeComments": true,
+//     "emitDecoratorMetadata": true,
+//     "experimentalDecorators": true,
+//     "allowSyntheticDefaultImports": true,
+//     "incremental": true,
+//     "skipLibCheck": true,
+//     "strict": false,
+//     "baseUrl": ".",
+//     "paths": {
+//       "@/*": ["src/*"]
+//     }
+//   },
+//   "include": ["src/**/*"],
+//   "exclude": ["node_modules", "dist"]
+// }
+
 {
   "compilerOptions": {
     "module": "commonjs",
@@ -6,16 +29,28 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2021",
+    "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src",
+    "prisma/seed.ts",
+    "./main.d.ts",
+    "test",
+    "prisma/seed/**/*.ts",
+    "importMasterData/logic-component-templates.*",
+    "src/utils/script/createMasterData/mail-templates",
+    "src/utils/script/createMasterData/firstSeedData.ts"
+  ],
+  "exclude": [
+    "src/utils/script/createMasterData/*"
+  ]
 }

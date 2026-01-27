@@ -23,3 +23,15 @@ model User {
 
   @@map("users")
 }
+model MockResponse {
+  id         Int      @id @default(autoincrement())
+  userId     String   @map("user_id")
+  fileName   String   @map("file_name")
+  path       String
+  method     String
+  response   Json
+  statusCode Int      @default(200) @map("status_code")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("mock_response")
+}

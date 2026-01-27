@@ -10,7 +10,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) { }
   private async generateTokens(payload: { id: string; email: string }) {
-    const accessToken = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
+    const accessToken = await this.jwtService.signAsync(payload, { expiresIn: '1d' });
     const refreshToken = await this.jwtService.signAsync(payload, { expiresIn: '30d' });
 
     return { accessToken, refreshToken };
@@ -32,8 +32,14 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid login_name or password');
     }
+    if (!user.password) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) throw new UnauthorizedException("Incorrect password");
+    if (!user.email) {
+      throw new UnauthorizedException('User email not found');
+    }
 
     const payload = { id: user.id, email: user.email };
 
@@ -69,13 +75,28 @@ export class AuthService {
   }
   async registerMember(dto: UserRegisterDto) {
     const { user, result, password } = dto;
-    const existedUser = await this.prisma.user.findUnique({
-      where: { id: user.id },
+    const existedUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: user.id },
+          { userIdentifier: result.user_identifier },
+          { email: result.email },
+        ],
+      },
     });
 
     if (existedUser) {
-      throw new BadRequestException('User already exists');
+      if (existedUser.id === user.id) {
+        throw new BadRequestException('User ID already exists');
+      }
+      if (existedUser.userIdentifier === result.user_identifier) {
+        throw new BadRequestException('User identifier already exists');
+      }
+      if (existedUser.email === result.email) {
+        throw new BadRequestException('Email already exists');
+      }
     }
+    
     const pushEnabled = result.setting?.push === '1';
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
