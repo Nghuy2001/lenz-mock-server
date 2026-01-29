@@ -12,17 +12,18 @@ model User {
   type              Int      @map("user_type")
   userIdentifier    String   @unique @map("user_identifier")
   userName          String   @map("user_name")
-  email             String?   @unique @map("user_email")
-  password          String?   @map("user_password")
-  applicationStatus Int      @map("application_status")
+  applicationStatus String   @map("application_status") @db.VarChar(50)
   pushEnabled       Boolean  @map("push_enabled")
   accessToken       String?  @map("access_token") @db.Text
   refreshToken      String?  @map("refresh_token") @db.Text
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
+  email             String?  @unique @map("user_email")
+  password          String?  @map("user_password")
 
   @@map("users")
 }
+
 model MockResponse {
   id         Int      @id @default(autoincrement())
   userId     String   @map("user_id")
