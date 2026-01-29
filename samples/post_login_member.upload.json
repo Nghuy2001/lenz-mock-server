@@ -1,11 +1,11 @@
 {
   "method": "POST",
-  "userId": "73a67f04547f4",
+  "userId": "73a67f04547f6",
   "path": "/app/abc/member",
   "statusCode": 201,
   "response": {
     "user": {
-      "id": "73a67f04547f4",
+      "id": "73a67f04547f6",
       "type": 2
     },
     "status": { "timestamp": 1769415617 }
